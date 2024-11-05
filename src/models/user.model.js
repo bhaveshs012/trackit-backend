@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
@@ -12,14 +14,6 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Last Name is requried"],
       trim: true,
-    },
-    username: {
-      type: String,
-      required: [true, "Username is required"],
-      lowercase: true,
-      trim: true,
-      unique: true,
-      index: true,
     },
     email: {
       type: String,
