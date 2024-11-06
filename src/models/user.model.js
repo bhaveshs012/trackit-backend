@@ -39,6 +39,12 @@ const userSchema = new Schema(
         trim: true,
       },
     ],
+    resumes: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     aspiringRole: {
       type: String,
       required: true,
@@ -77,8 +83,8 @@ userSchema.methods.generateAccessToken = function () {
     {
       _id: this._id,
       email: this.email,
-      username: this.username,
-      fullName: this.fullName,
+      firstName: this.firstName,
+      lastName: this.lastName,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
