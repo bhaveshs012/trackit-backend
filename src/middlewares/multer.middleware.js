@@ -16,7 +16,7 @@ const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "uploads",
+    folder: "trackit",
     allowed_formats: ["jpg", "png", "pdf"],
     public_id: (req, file) => `${Date.now()}_${file.originalname}`,
   },

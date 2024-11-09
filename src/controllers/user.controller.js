@@ -197,9 +197,123 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res.status(200).json(
+    new ApiResponse(200, req.user, "Current User fetched successfully !!") // middleware run ho chuka hai so apne pass user hai
+  );
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+  const updates = req.body;
+  const userId = req.user?._id;
+
+  // Validate fields - check if any extra field is present
+  const allowedUpdates = [
+    "firstName",
+    "lastName",
+    "password",
+    "skills",
+    "aspiringRole",
+    "experienceLevel",
+  ];
+  const isValidOperation = Object.keys(updates).every((field) =>
+    allowedUpdates.includes(field)
+  );
+
+  if (!isValidOperation) {
+    return res.status(400).json(new ApiError(400, "Invalid Updates !!"));
+  }
+
+  //* Find by id and update
+  const updatedProfile = await User.findByIdAndUpdate(
+    userId,
+    { $set: updates },
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedProfile) {
+    return res
+      .status(501)
+      .json(new ApiError(501, "User Details could not be updated !!"));
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedProfile,
+        "User Details have been updated successfully !!"
+      )
+    );
+});
+
+//* Resumes and Cover Letters
+const addResume = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+
+  //* Get the cloudinary link
+  const resumeUrl = req.files?.resume?.[0].path;
+
+  const updatedProfile = await User.findByIdAndUpdate(
+    userId,
+    {
+      $push: {
+        resumes: resumeUrl,
+      },
+    },
+    {
+      new: true, // Return the updated document
+    }
+  );
+
+  if (!updatedProfile) {
+    return res
+      .status(501)
+      .json(new ApiResponse(501, {}, "Resume could not be added !!"));
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedProfile,
+        "Resume has been added successfully !!"
+      )
+    );
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+  // we have auth middle ware added : we get access to the current user
+  await User.findByIdAndUpdate(
+    // db mein update karo RF ko khaali karo
+    req.user._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  // send response after clearing cookies
+  res
+    .status(200)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
+    .json(new ApiResponse(200, {}, "User logged out !!"));
+});
+
 export {
-  registerUser,
-  loginUser,
   generateAccessAndRefreshTokens,
   refreshAccessToken,
+  registerUser,
+  loginUser,
+  getCurrentUser,
+  updateUser,
+  addResume,
+  logoutUser,
 };
