@@ -24,29 +24,29 @@ const contactSchema = new Schema(
         },
         message: (props) => `${props.value} is not a valid email address !!`,
       },
-      companyName: {
-        type: String,
-        required: [true, "Company Name is required !!"],
-        trim: true,
-      },
-      role: {
-        type: String,
-        required: [true, "Role / Position is required !!"],
-        trim: true,
-      },
-      phoneNumber: {
-        type: String,
-        validate: {
-          validator: function (v) {
-            return /^[+]{1}(?:[0-9\-\(\)\/\.]\s?){6, 15}[0-9]{1}$/.test(v);
-          },
-          message: (props) => `${props.value} is not a valid phone number !!`,
+    },
+    companyName: {
+      type: String,
+      required: [true, "Company Name is required !!"],
+      trim: true,
+    },
+    role: {
+      type: String,
+      required: [true, "Role / Position is required !!"],
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return /^\+?[1-9]\d{1,14}$/.test(v);
         },
+        message: (props) => `${props.value} is not a valid phone number!`,
       },
-      linkedInProfile: {
-        type: String,
-        default: "",
-      },
+    },
+    linkedInProfile: {
+      type: String,
+      default: "",
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

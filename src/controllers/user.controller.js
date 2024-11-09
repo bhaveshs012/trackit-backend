@@ -148,6 +148,11 @@ const loginUser = asyncHandler(async (req, res) => {
   //* Get the email and password from the user
   const { email, password } = req.body;
 
+  //* Performing Validations
+  if ([email, password].some((field) => field.trim() === "")) {
+    throw new ApiError(400, "All fields are required !!");
+  }
+
   //* Find the user with that email
   const user = await User.findOne({ email });
   if (!user) {
