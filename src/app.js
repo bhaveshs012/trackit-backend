@@ -21,8 +21,12 @@ app.use(cookieParser());
 // Adding all the routes
 import userRouter from "./routes/user.routes.js";
 import contactRouter from "./routes/contact.routes.js";
+import interviewRouter from "./routes/interview.routes.js";
+import applicationRouter from "./routes/application.routes.js";
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/contacts", contactRouter);
+app.use("/api/v1/applications", applicationRouter);
+app.use("/api/v1/interviews", interviewRouter);
 
 // Error handler (should be after routes)
 app.use(errorHandler);

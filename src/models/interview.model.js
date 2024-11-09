@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const interviewRoundEnum = {
   PHONE_SCREENING: "Phone Screening",
@@ -10,7 +11,7 @@ const interviewRoundEnum = {
   OTHER: "Other",
 };
 
-const InterviewRoundSchema = new Schema(
+const interviewRoundSchema = new Schema(
   {
     position: {
       type: String,
@@ -41,6 +42,8 @@ const InterviewRoundSchema = new Schema(
   { timestamps: true }
 );
 
-const InterviewRound = mongoose.model("InterviewRound", InterviewRoundSchema);
+interviewRoundSchema.plugin(mongooseAggregatePaginate);
+
+const InterviewRound = mongoose.model("InterviewRound", interviewRoundSchema);
 
 export { InterviewRound, interviewRoundEnum };

@@ -36,10 +36,12 @@ const applicationSchema = new Schema(
     },
     coverLetterUploaded: {
       type: String,
+      default: "",
     },
     notes: {
       type: String,
       trim: true,
+      default: "",
     },
     appliedOn: {
       type: Date,
