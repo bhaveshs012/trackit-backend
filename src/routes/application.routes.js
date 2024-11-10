@@ -5,12 +5,15 @@ import {
   getApplicationById,
   updateApplicationById,
   deleteApplicationById,
+  getApplicationsByStatus,
+  getArchivedApplications,
 } from "../controllers/application.controller.js";
 
 const applicationRouter = Router();
 
 //* Defining all the routes for handling the job applications for user
-// applicationRouter.route("").get(verifyJWT, getAllApplications);
+applicationRouter.route("").get(verifyJWT, getApplicationsByStatus);
+applicationRouter.route("/archived").get(verifyJWT, getArchivedApplications);
 applicationRouter.route("").post(verifyJWT, createApplication);
 applicationRouter.route("/:id").get(verifyJWT, getApplicationById);
 applicationRouter.route("/:id").patch(verifyJWT, updateApplicationById);

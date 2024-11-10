@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/AysncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Application } from "../models/application.model.js";
+import mongoose from "mongoose";
 
 const createApplication = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
@@ -69,6 +70,160 @@ const createApplication = asyncHandler(async (req, res) => {
         "Job application has been added successfully !!"
       )
     );
+});
+
+const getApplicationsByStatus = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const { status } = req.body;
+  const { page = 1, limit = 10 } = req.query;
+
+  //* Validate the job Status
+  const allowedJobStatuses = [
+    "Applied",
+    "Interviewing",
+    "Offer Received",
+    "Accepted",
+    "Rejected",
+    "Withdrawn",
+  ];
+  const validStatus = allowedJobStatuses.includes(status);
+
+  if (!validStatus) {
+    throw new ApiError(401, "Invalid Status Provided !!");
+  }
+
+  //* Build the aggregation pipeline
+  const aggregationPipeline = Application.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        applicationStatus: status,
+      },
+    },
+    {
+      $project: {
+        companyName: 1,
+        position: 1,
+        jobLink: 1,
+        applicationStatus: 1,
+        resumeUploaded: 1,
+        coverLetterUploaded: 1,
+        notes: 1,
+        userId: 1,
+        appliedOn: 1,
+      },
+    },
+  ]);
+
+  //* Create pagination
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const results = await Application.aggregatePaginate(
+    aggregationPipeline,
+    options
+  );
+
+  if (!results) {
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          [],
+          `Job Applications - (${status}) could not be fetched !!`
+        )
+      );
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        applications: results.docs,
+        status: status,
+        pagination: {
+          totalDocs: results.totalDocs,
+          totalPages: results.totalPages,
+          currentPage: results.page,
+          limit: results.limit,
+        },
+      },
+      `Job Applications - (${status}) fetched successfully !!`
+    )
+  );
+});
+
+const getArchivedApplications = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const { page = 1, limit = 10 } = req.query;
+
+  //* Build the aggregation pipeline
+  const aggregationPipeline = Application.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        applicationStatus: {
+          $in: ["Rejected", "Accepted", "Withdrawn"],
+        },
+      },
+    },
+    {
+      $project: {
+        companyName: 1,
+        position: 1,
+        jobLink: 1,
+        applicationStatus: 1,
+        resumeUploaded: 1,
+        coverLetterUploaded: 1,
+        notes: 1,
+        userId: 1,
+        appliedOn: 1,
+      },
+    },
+  ]);
+
+  //* Create pagination
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const results = await Application.aggregatePaginate(
+    aggregationPipeline,
+    options
+  );
+
+  if (!results) {
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          [],
+          `Job Applications - (Archived) could not be fetched !!`
+        )
+      );
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        applications: results.docs,
+        status: "archived",
+        pagination: {
+          totalDocs: results.totalDocs,
+          totalPages: results.totalPages,
+          currentPage: results.page,
+          limit: results.limit,
+        },
+      },
+      `Job Applications - (Archived) fetched successfully !!`
+    )
+  );
 });
 
 const getApplicationById = asyncHandler(async (req, res) => {
@@ -238,6 +393,8 @@ const deleteApplicationById = asyncHandler(async (req, res) => {
 
 export {
   createApplication,
+  getApplicationsByStatus,
+  getArchivedApplications,
   getApplicationById,
   updateApplicationById,
   deleteApplicationById,

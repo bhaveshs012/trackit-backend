@@ -64,6 +64,70 @@ const getAllInterviews = asyncHandler(async (req, res) => {
   );
 });
 
+const getArchivedInterviews = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const userId = req.user?._id;
+
+  //* Build the aggregation pipeline
+  const aggregationPipeline = InterviewRound.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        scheduledOn: { $lt: new Date() },
+      },
+    },
+    {
+      $project: {
+        position: 1,
+        userId: 1,
+        companyName: 1,
+        scheduledOn: 1,
+        interviewRound: 1,
+        roundDetails: 1,
+      },
+    },
+  ]);
+
+  //* Create pagination
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const results = await InterviewRound.aggregatePaginate(
+    aggregationPipeline,
+    options
+  );
+
+  if (!results) {
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(
+          500,
+          [],
+          "Archived Interview Rounds Could not be fetched !!"
+        )
+      );
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        interviewRounds: results.docs,
+        pagination: {
+          totalDocs: results.totalDocs,
+          totalPages: results.totalPages,
+          currentPage: results.page,
+          limit: results.limit,
+        },
+      },
+      "Archived Interview Rounds Fetched Successfully !!"
+    )
+  );
+});
+
 const getInterviewRoundById = asyncHandler(async (req, res) => {
   const interviewRoundId = req.params.id;
   const userId = req.user?._id;
@@ -285,6 +349,7 @@ const deleteInterviewRoundById = asyncHandler(async (req, res) => {
 
 export {
   getAllInterviews,
+  getArchivedInterviews,
   getInterviewRoundById,
   createInterviewRound,
   deleteInterviewRoundById,
