@@ -32,7 +32,7 @@ const applicationSchema = new Schema(
     },
     //* Hyperlinks to the resume and cover letter added
     resumeUploaded: {
-      type: String,
+      type: String, // passing only the cloudinary link
       required: [true, "Resume is required !!"],
     },
     coverLetterUploaded: {

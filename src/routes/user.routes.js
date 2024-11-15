@@ -7,6 +7,7 @@ import {
   logoutUser,
   updateUser,
   addResume,
+  getAllResumes,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
@@ -24,7 +25,7 @@ userRouter.route("/update-profile").patch(verifyJWT, updateUser);
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 
 //* File Handling
-userRouter.route("/addResume").post(
+userRouter.route("/resume").post(
   verifyJWT,
   upload.fields([
     {
@@ -35,5 +36,6 @@ userRouter.route("/addResume").post(
   multerErrorHandler,
   addResume
 );
+userRouter.route("/resume").get(verifyJWT, getAllResumes);
 
 export default userRouter;

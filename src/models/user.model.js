@@ -39,12 +39,6 @@ const userSchema = new Schema(
         trim: true,
       },
     ],
-    resumes: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
     aspiringRole: {
       type: String,
       required: true,

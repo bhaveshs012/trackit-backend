@@ -29,6 +29,11 @@ const upload = multer({
 
 // Middleware to handle multer errors
 const multerErrorHandler = (err, req, res, next) => {
+  if (!req.user) {
+    return res
+      .status(401)
+      .json(new ApiResponse(401, "", `Unauthorized Access !!`));
+  }
   if (err instanceof multer.MulterError) {
     // Handle multer-specific errors
     return res

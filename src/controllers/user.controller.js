@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import cookieOptions from "../utils/cookiesOptions.js";
+import { Resume } from "../models/resume.model.js";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -251,23 +253,26 @@ const updateUser = asyncHandler(async (req, res) => {
 //* Resumes and Cover Letters
 const addResume = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
+  const { fileName, targetPosition, skills } = req.body;
+
+  if ([fileName, targetPosition].some((field) => field.trim() === "")) {
+    throw new ApiError(401, "Please provided all the required fields");
+  }
 
   //* Get the cloudinary link
   const resumeUrl = req.files?.resume?.[0].path;
 
-  const updatedProfile = await User.findByIdAndUpdate(
-    userId,
-    {
-      $push: {
-        resumes: resumeUrl,
-      },
-    },
-    {
-      new: true, // Return the updated document
-    }
-  );
+  //* Add the Resume
+  const resume = await Resume.create({
+    fileName,
+    targetPosition,
+    skills: JSON.parse(skills),
+    uploadedOn: new Date(),
+    resumeLink: resumeUrl,
+    userId: userId,
+  });
 
-  if (!updatedProfile) {
+  if (!resume) {
     return res
       .status(501)
       .json(new ApiResponse(501, {}, "Resume could not be added !!"));
@@ -276,12 +281,64 @@ const addResume = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        updatedProfile,
-        "Resume has been added successfully !!"
-      )
+      new ApiResponse(200, resume, "Resume has been added successfully !!")
     );
+});
+
+const getAllResumes = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+  const userId = req.user?._id;
+
+  //* Build the aggregation pipeline
+  const aggregationPipeline = Resume.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        fileName: 1,
+        targetPosition: 1,
+        skills: 1,
+        resumeLink: 1,
+        uploadedOn: 1,
+        userId: 1,
+      },
+    },
+  ]);
+
+  //* Create pagination
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10),
+  };
+
+  const results = await Resume.aggregatePaginate(aggregationPipeline, options);
+
+  if (!results) {
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(500, [], "Resumes for the user could not be fetched !!")
+      );
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        resumes: results.docs,
+        pagination: {
+          totalDocs: results.totalDocs,
+          totalPages: results.totalPages,
+          currentPage: results.page,
+          limit: results.limit,
+        },
+      },
+      "Resumes for the user fetched successfully !!"
+    )
+  );
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -315,5 +372,6 @@ export {
   getCurrentUser,
   updateUser,
   addResume,
+  getAllResumes,
   logoutUser,
 };
