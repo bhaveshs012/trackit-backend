@@ -5,6 +5,7 @@ import { User } from "../models/user.model.js";
 import cookieOptions from "../utils/cookiesOptions.js";
 import { Resume } from "../models/resume.model.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -30,6 +31,12 @@ const generateAccessAndRefreshTokens = async (userId) => {
     throw new Error("Something went wrong while generating tokens");
   }
 };
+
+const autoLogin = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie) return res.status(401).json();
+  return res.status(200).json();
+});
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
@@ -369,6 +376,7 @@ export {
   refreshAccessToken,
   registerUser,
   loginUser,
+  autoLogin,
   getCurrentUser,
   updateUser,
   addResume,
