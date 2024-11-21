@@ -2,7 +2,10 @@ import { asyncHandler } from "../utils/AysncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import cookieOptions from "../utils/cookiesOptions.js";
+import {
+  accessTokenCookieOptions,
+  refreshTokenCookieOptions,
+} from "../utils/cookiesOptions.js";
 import { Resume } from "../models/resume.model.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -31,12 +34,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
     throw new Error("Something went wrong while generating tokens");
   }
 };
-
-const autoLogin = asyncHandler(async (req, res) => {
-  const cookie = req.cookies;
-  if (!cookie) return res.status(401).json();
-  return res.status(200).json();
-});
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
@@ -73,8 +70,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     // Send the new tokens as cookies and in the response body
     return res
       .status(200)
-      .cookie("accessToken", accessToken, cookieOptions)
-      .cookie("refreshToken", refreshToken, cookieOptions)
+      .cookie("accessToken", accessToken, accessTokenCookieOptions)
+      .cookie("refreshToken", refreshToken, accessTokenCookieOptions)
       .json(
         new ApiResponse(
           200,
@@ -191,8 +188,8 @@ const loginUser = asyncHandler(async (req, res) => {
   //* send the response
   return res
     .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
+    .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
     .json(
       new ApiResponse(
         200,
@@ -366,8 +363,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   // send response after clearing cookies
   res
     .status(200)
-    .clearCookie("accessToken", cookieOptions)
-    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", accessTokenCookieOptions)
+    .clearCookie("refreshToken", accessTokenCookieOptions)
     .json(new ApiResponse(200, {}, "User logged out !!"));
 });
 
@@ -376,7 +373,6 @@ export {
   refreshAccessToken,
   registerUser,
   loginUser,
-  autoLogin,
   getCurrentUser,
   updateUser,
   addResume,

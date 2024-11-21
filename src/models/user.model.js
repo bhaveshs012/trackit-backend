@@ -46,7 +46,7 @@ const userSchema = new Schema(
     },
     experienceLevel: {
       type: String,
-      enum: ["Entry", "Intermediate", "Senior", "Principal"],
+      enum: ["Entry", "Intermediate", "Senior", "Executive"],
       default: "Entry",
     },
   },

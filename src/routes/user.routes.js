@@ -8,7 +8,6 @@ import {
   updateUser,
   addResume,
   getAllResumes,
-  autoLogin,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
@@ -20,7 +19,7 @@ const userRouter = Router();
 
 userRouter.route("/register").post(registerUser);
 userRouter.route("/login").post(loginUser);
-userRouter.route("/autoLogin").get(autoLogin);
+
 userRouter.route("/refresh-token").post(verifyJWT, refreshAccessToken);
 userRouter.route("/current-user").get(verifyJWT, getCurrentUser);
 userRouter.route("/update-profile").patch(verifyJWT, updateUser);
