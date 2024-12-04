@@ -257,9 +257,11 @@ const updateUser = asyncHandler(async (req, res) => {
 //* Resumes and Cover Letters
 const addResume = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  const { fileName, targetPosition, skills } = req.body;
+  const firstName = req.user?.firstName;
+  const lastName = req.user?.lastName;
+  const { targetPosition, skills } = req.body;
 
-  if ([fileName, targetPosition].some((field) => field.trim() === "")) {
+  if ([targetPosition].some((field) => field.trim() === "")) {
     throw new ApiError(401, "Please provided all the required fields");
   }
 
@@ -268,7 +270,7 @@ const addResume = asyncHandler(async (req, res) => {
 
   //* Add the Resume
   const resume = await Resume.create({
-    fileName,
+    fileName: `${firstName}_${lastName}_${targetPosition}`,
     targetPosition,
     skills: JSON.parse(skills),
     uploadedOn: new Date(),
