@@ -84,6 +84,22 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
+const validateToken = (req, res, next) => {
+  try {
+    // If `verifyJWT` middleware passes, the token is valid
+    const user = req.user;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: "Token is valid",
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 const registerUser = asyncHandler(async (req, res) => {
   //* Getting the details from the user
   const {
@@ -373,6 +389,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 export {
   generateAccessAndRefreshTokens,
   refreshAccessToken,
+  validateToken,
   registerUser,
   loginUser,
   getCurrentUser,
