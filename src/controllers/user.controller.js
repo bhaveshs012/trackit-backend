@@ -84,22 +84,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-const validateToken = (req, res, next) => {
-  try {
-    // If `verifyJWT` middleware passes, the token is valid
-    const user = req.user;
+const validateToken = asyncHandler(async (req, res) => {
+  const user = req.user;
 
-    res.status(200).json({
-      success: true,
-      data: {
-        message: "Token is valid",
-        user,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  if (!user)
+    return res
+      .status(401)
+      .json(new ApiResponse(401, null, "Token is invalid !!"));
+  return res.status(200).json(new ApiResponse(200, user, "Token is valid !!"));
+});
 const registerUser = asyncHandler(async (req, res) => {
   //* Getting the details from the user
   const {
