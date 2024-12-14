@@ -22,6 +22,15 @@ const userSchema = new Schema(
       trim: true,
       unique: true,
     },
+    phoneNumber: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return /^\+?[1-9]\d{1,14}$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid phone number!`,
+      },
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -31,7 +40,6 @@ const userSchema = new Schema(
       type: String,
       default: null, // Initialize refresh token field in the schema
     },
-
     //* Job Specific Details
     skills: [
       {

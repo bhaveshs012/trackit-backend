@@ -93,12 +93,14 @@ const validateToken = asyncHandler(async (req, res) => {
       .json(new ApiResponse(401, null, "Token is invalid !!"));
   return res.status(200).json(new ApiResponse(200, user, "Token is valid !!"));
 });
+
 const registerUser = asyncHandler(async (req, res) => {
   //* Getting the details from the user
   const {
     firstName,
     lastName,
     email,
+    phoneNumber,
     password,
     skills,
     aspiringRole,
@@ -129,6 +131,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     firstName: firstName,
     lastName: lastName,
+    phoneNumber,
     email,
     password,
     skills,
