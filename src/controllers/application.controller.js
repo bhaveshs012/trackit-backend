@@ -74,8 +74,7 @@ const createApplication = asyncHandler(async (req, res) => {
 
 const getApplicationsByStatus = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  const { status } = req.body;
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, status } = req.query;
 
   //* Validate the job Status
   const allowedJobStatuses = [
