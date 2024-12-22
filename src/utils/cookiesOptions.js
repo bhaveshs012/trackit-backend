@@ -2,7 +2,7 @@ const accessTokenCookieOptions = {
   httpOnly: true, // Accessible from JavaScript
   secure: true, // Use true in production (HTTPS)
   sameSite: "strict",
-  maxAge: 1 * 60 * 60 * 1000, // 1 hour
+  maxAge: 24 * 60 * 60 * 1000, // 1 day
 };
 
 const refreshTokenCookieOptions = {
