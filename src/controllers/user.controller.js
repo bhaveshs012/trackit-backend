@@ -230,6 +230,7 @@ const updateUser = asyncHandler(async (req, res) => {
     "firstName",
     "lastName",
     "password",
+    "phoneNumber",
     "skills",
     "aspiringRole",
     "experienceLevel",
