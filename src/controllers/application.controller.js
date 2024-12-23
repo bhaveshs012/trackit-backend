@@ -77,14 +77,7 @@ const getApplicationsByStatus = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
 
   //* Validate the job Status
-  const allowedJobStatuses = [
-    "Applied",
-    "Interviewing",
-    "Offer Received",
-    "Accepted",
-    "Rejected",
-    "Withdrawn",
-  ];
+  const allowedJobStatuses = ["Applied", "Interviewing", "Offer Received"];
   const validStatus = allowedJobStatuses.includes(status);
 
   if (!validStatus) {
@@ -157,16 +150,21 @@ const getApplicationsByStatus = asyncHandler(async (req, res) => {
 
 const getArchivedApplications = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, status } = req.query;
+
+  const allowedJobStatuses = ["Accepted", "Rejected", "Withdrawn"];
+  const validStatus = allowedJobStatuses.includes(status);
+
+  if (!validStatus) {
+    throw new ApiError(401, "Invalid Status Provided !!");
+  }
 
   //* Build the aggregation pipeline
   const aggregationPipeline = Application.aggregate([
     {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
-        applicationStatus: {
-          $in: ["Rejected", "Accepted", "Withdrawn"],
-        },
+        applicationStatus: status,
       },
     },
     {
@@ -202,7 +200,7 @@ const getArchivedApplications = asyncHandler(async (req, res) => {
         new ApiResponse(
           500,
           [],
-          `Job Applications - (Archived) could not be fetched !!`
+          `Job Applications - (${status}) could not be fetched !!`
         )
       );
   }
@@ -212,7 +210,7 @@ const getArchivedApplications = asyncHandler(async (req, res) => {
       200,
       {
         applications: results.docs,
-        status: "archived",
+        status: status,
         pagination: {
           totalDocs: results.totalDocs,
           totalPages: results.totalPages,
@@ -220,9 +218,41 @@ const getArchivedApplications = asyncHandler(async (req, res) => {
           limit: results.limit,
         },
       },
-      `Job Applications - (Archived) fetched successfully !!`
+      `Job Applications - (${status}) fetched successfully !!`
     )
   );
+});
+
+const getArchivedApplicationsCount = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const statuses = ["Accepted", "Withdrawn", "Rejected"];
+
+  // Aggregate to count documents grouped by status
+  const counts = await Application.aggregate([
+    {
+      $match: {
+        applicationStatus: { $in: statuses },
+        userId: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    { $group: { _id: "$applicationStatus", count: { $sum: 1 } } },
+  ]);
+
+  // Format the result to ensure all statuses are included
+  const response = statuses.reduce((acc, status) => {
+    acc[status] = counts.find((item) => item._id === status)?.count || 0;
+    return acc;
+  }, {});
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        response,
+        "Archived Job Applications Count has been fetched successfully !!"
+      )
+    );
 });
 
 const getApplicationById = asyncHandler(async (req, res) => {
@@ -394,6 +424,7 @@ export {
   createApplication,
   getApplicationsByStatus,
   getArchivedApplications,
+  getArchivedApplicationsCount,
   getApplicationById,
   updateApplicationById,
   deleteApplicationById,
